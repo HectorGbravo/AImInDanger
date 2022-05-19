@@ -1,36 +1,41 @@
+// se deben declarar las variables env dentro de windows con set en la terminal
+// set AZURE_CUSTOM_VISION_PREDICTION_KEY=0f9a0186312d46c78293f4cb85e3e70b
+// set CUSTOM_VISION_ENDPOINT=https://animalespeligro-prediction.cognitiveservices.azure.com/
+
 'use strict';
 
 const fs = require('fs');
 const util = require('util');
 
 const PredictionApi = require("@azure/cognitiveservices-customvision-prediction");
+const msRest = require("@azure/ms-rest-js");
 
 const setTimeoutPromise = util.promisify(setTimeout);
 
-let predictionKeyVar = 'd7b31da25374446984bc954ef90fd056';
+let predictionKeyVar = 'AZURE_CUSTOM_VISION_PREDICTION_KEY';
 
-//if (!process.env[predictionKeyVar]) {
-//    throw new Error('please set/export the following environment variable: ' + predictionKeyVar);
-//}
-
-// This is referenced from the root of the repo.
-const sampleDataRoot = "src/assets/images";
-
-//const predictionKey = process.env[predictionKeyVar];
-const predictionKey = predictionKeyVar;
-console.log(predictionKey)
+if (!process.env[predictionKeyVar]) {
+    throw new Error('please set/export the following environment variable: ' + predictionKeyVar);
+}
+const predictionKey = process.env[predictionKeyVar];
 // Add your Custom Vision endpoint to your environment variables.
-const endPoint = 'https://imindanger.cognitiveservices.azure.com';
+const predictionEndpoint = process.env['CUSTOM_VISION_ENDPOINT'];
 
-const predictionResourceId = "/subscriptions/596277bf-9ec6-42e7-9699-1219e96ca413/resourceGroups/iamindanger/providers/Microsoft.CognitiveServices/accounts/imindanger";
-const projectId = "883de85d-286b-4ca3-80cf-cbb7af5ce0b9";
-const publishIterationName = "classifyModel";
+const predictor_credentials = new msRest.ApiKeyCredentials({ inHeader: { "Prediction-key": predictionKey } });
+console.log(predictor_credentials)
+// This is referenced from the root of the repo.
+const sampleDataRoot = "/AImInDanger/src/assets/images/";
+const publishIterationName = "Predice1";
+const projectId = "d68b4c13-7679-4462-9906-880dbd10e16c";
+//const publishIterationName = "classifyModel";
 
 async function sample() {
 
     // Step 5. Prediction
-    const predictor = new PredictionApi.PredictionAPIClient(predictionKey, endPoint);
-    const testFile = fs.readFileSync(`${sampleDataRoot}/ballena01.jpg`);
+    const predictor = new PredictionApi.PredictionAPIClient(predictor_credentials, predictionEndpoint);
+
+    //const testFile = fs.readFileSync(`${sampleDataRoot}ballena01.jpg`);
+    const testFile = fs.readFileSync(`turtle-test.jpg`);
 
     const results = await predictor.classifyImage(projectId, publishIterationName, testFile);
 
